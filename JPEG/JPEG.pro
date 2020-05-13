@@ -26,10 +26,16 @@ CONFIG += c++11
 
 SOURCES += \
         main.cpp \
-        widget.cpp
+        widget.cpp \
+    bit.cpp \
+    mchannel.cpp \
+    wavelet.cpp
 
 HEADERS += \
-        widget.h
+        widget.h \
+    bit.h \
+    mchannel.h \
+    wavelet.h
 
 FORMS += \
         widget.ui
