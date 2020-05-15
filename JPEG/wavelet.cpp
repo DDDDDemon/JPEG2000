@@ -6,7 +6,6 @@
 #include <string.h>
 #include "wavelet.h"
 
-
 /*首先必须注意的是，在小波变换的时候采用的是串行工作方式
 （即，小波系数存放在原图象的存储区内），因此不得不对小波系数重新排序。
 这样一来，对于高速缓存的利用是十分低效率的，却可以节省不少的空间。*/
@@ -179,8 +178,6 @@ WAVELET_DLL_API int WAVELET_DLL_CC log2i(int max_val)
     return i;
 }
 
-
-
 //本函数利用比特交错将重排序索引转换称(x,y)形式的坐标
 static void get_zig_zag_idx(const int idx, const int maxx, const int maxy, int* xx, int* yy)
 {
@@ -224,7 +221,6 @@ static void get_zig_zag_idx(const int idx, const int maxx, const int maxy, int* 
             }
         }
     }
-
 }
 
 static int** init_reorder_tables(const int width, const int owidth, const int height, const int oheight, const int levels)
@@ -268,7 +264,6 @@ static int** init_reorder_tables(const int width, const int owidth, const int he
     }
     return tables;
 }
-
 
 static void free_reorder_tables(int** tables, const int levels)
 {
