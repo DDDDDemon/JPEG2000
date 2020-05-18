@@ -20,11 +20,56 @@ Widget::~Widget()
     delete ui;
 }
 
+void Widget::wv_progress(int Current, int Maximum)
+{
+    ProgressRecord *pr;
+    int ofs;
+    ofs=(pr->CurChannel*ui->PSNRHorizontalSlider->maximum())/pr->MaxChannel;
+    ui->PSNRHorizontalSlider->setValue(ofs+(Current*ui->PSNRHorizontalSlider->maximum()/(pr->MaxChannel*Maximum)));
+    update();
+}
+
+void Widget::LoadSourceImage(QString FileName, bool GreyScale, bool YCbCr)
+{
+    QString channel_names[2][wv_MAX_CHANNELS]={{"R", "G", "B", "A", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"},
+                                               {"Y", "Cb", "Cr", "A", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"}};
+    QImage temp;
+    int i;
+    wv_pel y,cb,cr;
+    t_bit_file bf;
+    bool is_ycbcr;
+    t_wv_dchannels dc;
+    int old_num_channels;
+    int max_bits;
+
+}
+
+void Widget::WidgetInit()
+{
+    int i;
+    QImage tf;
+    for(i=0;i<wv_MAX_CHANNELS;i++)
+    {
+        Channels[i].Data=NULL;
+        Channels[i].CData=NULL;
+        Channels[i].Channel=nullptr;
+    }
+    ImageWidth=0;
+    ImageHeight=0;
+    NumChannels=0;
+    NumBlocks=0;
+    ReorderTable=NULL;
+
+}
+
 void Widget::on_LoadButton_clicked()
 {
-    QString path = QFileDialog::getOpenFileName(this, tr("选择图片"), ".", tr("Image Files(*.jpg *.png)"));
+    if(((NumChannels+1<=wv_MAX_CHANNELS)&&ui->GreyscaleCheckBox->checkState()==true)||((NumChannels+3<=wv_MAX_CHANNELS)&&(!(ui->GreyscaleCheckBox->checkState()==true))))
+    {
+        QString path = QFileDialog::getOpenFileName(this, tr("选择图片"), ".", tr("Image Files(*.jpg *.png)"));
+    }
+            /*
     QImage* img=new QImage;
-    QImage* scaledimg=new QImage;//分别保存原图和缩放之后的图片
     if(! ( img->load(path) ) ) //加载图像
     {
         QMessageBox::information(this,tr("打开图像失败"),tr("打开图像失败!"));
@@ -35,6 +80,7 @@ void Widget::on_LoadButton_clicked()
     imageDirectory<<path;
     QStringListModel *model=new QStringListModel(imageDirectory);
     ui->DirectoryListView->setModel(model);
+            */
 }
 
 void Widget::on_ClearButton_clicked()
