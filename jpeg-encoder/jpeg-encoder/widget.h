@@ -20,6 +20,9 @@ public:
 public slots:
     void on_pushButton_OpenFile_clicked();
 
+private slots:
+    void on_pushButton_OpenFile_2_clicked();
+
 private:
     Ui::Widget *ui;
 };

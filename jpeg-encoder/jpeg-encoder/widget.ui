@@ -52,6 +52,19 @@
     <string>压缩比：</string>
    </property>
   </widget>
+  <widget class="QPushButton" name="pushButton_OpenFile_2">
+   <property name="geometry">
+    <rect>
+     <x>50</x>
+     <y>180</y>
+     <width>75</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>打开文件</string>
+   </property>
+  </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>

@@ -1,6 +1,7 @@
 ﻿#include "widget.h"
 #include "ui_widget.h"
 #include "encoder.h"
+#include "decoder.h"
 #include <QFileDialog>
 #include <QMessageBox>
 #include <stdio.h>
@@ -30,7 +31,27 @@ void Widget::on_pushButton_OpenFile_clicked()
     }
 }
 
+void Widget::on_pushButton_OpenFile_2_clicked()
+{
+    QString path = QFileDialog::getOpenFileName(this, tr("选择图片"), ".", tr("Jpeg Files(*.jpg)"));
+    string str=path.toStdString();
+    const char* s=str.c_str();
+    FILE *f = fopen(s, "r");
+    init_cos_cache();
+    readStream(f);
+    //    if(!e.readFromBMP(s))
+//    {
+//        QMessageBox::information(NULL, "警告", "打开图片失败", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+//    }
+//    int quality=ui->spinBox_Quality_scale->text().toInt();
+//    if(!e.encodeToJPG("out.jpg",quality))
+//    {
+//        QMessageBox::information(NULL, "警告", "图片转换失败", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+//    }
+}
+
 Widget::~Widget()
 {
     delete ui;
 }
+

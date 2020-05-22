@@ -27,11 +27,15 @@ CONFIG += c++11
 SOURCES += \
         main.cpp \
         widget.cpp \
-    encoder.cpp
+    encoder.cpp \
+    decoder.cpp \
+    qdbmp.cpp
 
 HEADERS += \
         widget.h \
-    encoder.h
+    encoder.h \
+    qdbmp.h \
+    decoder.h
 
 FORMS += \
         widget.ui
