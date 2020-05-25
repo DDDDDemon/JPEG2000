@@ -24,6 +24,7 @@ public:
     QPushButton *pushButton_OpenFile;
     QSpinBox *spinBox_Quality_scale;
     QLabel *label;
+    QPushButton *pushButton_OpenFile2;
 
     void setupUi(QWidget *Widget)
     {
@@ -40,6 +41,9 @@ public:
         label = new QLabel(Widget);
         label->setObjectName(QString::fromUtf8("label"));
         label->setGeometry(QRect(170, 230, 54, 25));
+        pushButton_OpenFile2 = new QPushButton(Widget);
+        pushButton_OpenFile2->setObjectName(QString::fromUtf8("pushButton_OpenFile2"));
+        pushButton_OpenFile2->setGeometry(QRect(50, 180, 75, 23));
 
         retranslateUi(Widget);
 
@@ -51,6 +55,7 @@ public:
         Widget->setWindowTitle(QApplication::translate("Widget", "Widget", nullptr));
         pushButton_OpenFile->setText(QApplication::translate("Widget", "\346\211\223\345\274\200\346\226\207\344\273\266", nullptr));
         label->setText(QApplication::translate("Widget", "\345\216\213\347\274\251\346\257\224\357\274\232", nullptr));
+        pushButton_OpenFile2->setText(QApplication::translate("Widget", "\346\211\223\345\274\200\346\226\207\344\273\266", nullptr));
     } // retranslateUi
 
 };

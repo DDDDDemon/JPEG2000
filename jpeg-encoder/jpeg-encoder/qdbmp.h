@@ -1,5 +1,5 @@
-#ifndef __QDBMP_H__
-#define __QDBMP_H__
+﻿#ifndef _BMP_H_
+#define _BMP_H_
 
 
 /**************************************************************
@@ -46,15 +46,15 @@
 
 /* Type definitions */
 #ifndef UINT
-    #define UINT	unsigned long int
+#define UINT	unsigned long int
 #endif
 
 #ifndef USHORT
-    #define USHORT	unsigned short
+#define USHORT	unsigned short
 #endif
 
 #ifndef UCHAR
-    #define UCHAR	unsigned char
+#define UCHAR	unsigned char
 #endif
 
 
@@ -90,36 +90,36 @@ typedef struct _BMP BMP;
 
 
 /* Construction/destruction */
-BMP*			BMP_Create					( UINT width, UINT height, USHORT depth );
-void			BMP_Free					( BMP* bmp );
+BMP*			BMP_Create(UINT width, UINT height, USHORT depth);
+void			BMP_Free(BMP* bmp);
 
 
 /* I/O */
-BMP*			BMP_ReadFile				( const char* filename );
-void			BMP_WriteFile				( BMP* bmp, const char* filename );
+BMP*			BMP_ReadFile(const char* filename);
+void			BMP_WriteFile(BMP* bmp, const char* filename);
 
 
 /* Meta info */
-UINT			BMP_GetWidth				( BMP* bmp );
-UINT			BMP_GetHeight				( BMP* bmp );
-USHORT			BMP_GetDepth				( BMP* bmp );
+UINT			BMP_GetWidth(BMP* bmp);
+UINT			BMP_GetHeight(BMP* bmp);
+USHORT			BMP_GetDepth(BMP* bmp);
 
 
 /* Pixel access */
-void			BMP_GetPixelRGB				( BMP* bmp, UINT x, UINT y, UCHAR* r, UCHAR* g, UCHAR* b );
-void			BMP_SetPixelRGB				( BMP* bmp, UINT x, UINT y, UCHAR r, UCHAR g, UCHAR b );
-void			BMP_GetPixelIndex			( BMP* bmp, UINT x, UINT y, UCHAR* val );
-void			BMP_SetPixelIndex			( BMP* bmp, UINT x, UINT y, UCHAR val );
+void			BMP_GetPixelRGB(BMP* bmp, UINT x, UINT y, UCHAR* r, UCHAR* g, UCHAR* b);
+void			BMP_SetPixelRGB(BMP* bmp, UINT x, UINT y, UCHAR r, UCHAR g, UCHAR b);
+void			BMP_GetPixelIndex(BMP* bmp, UINT x, UINT y, UCHAR* val);
+void			BMP_SetPixelIndex(BMP* bmp, UINT x, UINT y, UCHAR val);
 
 
 /* Palette handling */
-void			BMP_GetPaletteColor			( BMP* bmp, UCHAR index, UCHAR* r, UCHAR* g, UCHAR* b );
-void			BMP_SetPaletteColor			( BMP* bmp, UCHAR index, UCHAR r, UCHAR g, UCHAR b );
+void			BMP_GetPaletteColor(BMP* bmp, UCHAR index, UCHAR* r, UCHAR* g, UCHAR* b);
+void			BMP_SetPaletteColor(BMP* bmp, UCHAR index, UCHAR r, UCHAR g, UCHAR b);
 
 
 /* Error handling */
-BMP_STATUS		BMP_GetError				();
-const char*		BMP_GetErrorDescription		();
+BMP_STATUS		BMP_GetError();
+const char*		BMP_GetErrorDescription();
 
 
 /* Useful macro that may be used after each BMP operation to check for an error */
@@ -130,4 +130,4 @@ const char*		BMP_GetErrorDescription		();
         return( return_value );														\
     }																				\
 
-#endif // QDBMP_H
+#endif

@@ -52,13 +52,13 @@
     <string>压缩比：</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_OpenFile_2">
+  <widget class="QPushButton" name="pushButton_OpenFile2">
    <property name="geometry">
     <rect>
      <x>50</x>
      <y>180</y>
      <width>75</width>
-     <height>25</height>
+     <height>23</height>
     </rect>
    </property>
    <property name="text">

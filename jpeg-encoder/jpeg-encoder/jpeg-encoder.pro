@@ -28,14 +28,12 @@ SOURCES += \
         main.cpp \
         widget.cpp \
     encoder.cpp \
-    decoder.cpp \
     qdbmp.cpp
 
 HEADERS += \
         widget.h \
     encoder.h \
-    qdbmp.h \
-    decoder.h
+    qdbmp.h
 
 FORMS += \
         widget.ui
