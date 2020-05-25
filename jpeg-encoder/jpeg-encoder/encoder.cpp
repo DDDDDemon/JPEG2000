@@ -5,11 +5,11 @@
 #include <stdio.h>
 #include <memory.h>
 #include <math.h>
-
 #include "encoder.h"
 
-namespace {
-    //-------------------------------------------------------------------------------
+namespace
+{
+    //亮度量化转换表
     const unsigned char Luminance_Quantization_Table[64] =
     {
         16,  11,  10,  16,  24,  40,  51,  61,
@@ -22,7 +22,7 @@ namespace {
         72,  92,  95,  98, 112, 100, 103,  99
     };
 
-    //-------------------------------------------------------------------------------
+    //色差值量化转换表
     const unsigned char Chrominance_Quantization_Table[64] =
     {
         17,  18,  24,  47,  99,  99,  99,  99,
@@ -35,7 +35,7 @@ namespace {
         99,  99,  99,  99,  99,  99,  99,  99
     };
 
-    //-------------------------------------------------------------------------------
+    //Z字型变换
     const char ZigZag[64] =
     {
         0, 1, 5, 6,14,15,27,28,
@@ -48,15 +48,15 @@ namespace {
         35,36,48,49,57,58,62,63
     };
 
-    //-------------------------------------------------------------------------------
+    //标准亮度DC值
     const char Standard_DC_Luminance_NRCodes[] = { 0, 0, 7, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 };
     const unsigned char Standard_DC_Luminance_Values[] = { 4, 5, 3, 2, 6, 1, 0, 7, 8, 9, 10, 11 };
 
-    //-------------------------------------------------------------------------------
+    //标准色差DC值
     const char Standard_DC_Chrominance_NRCodes[] = { 0, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0 };
     const unsigned char Standard_DC_Chrominance_Values[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
 
-    //-------------------------------------------------------------------------------
+    //标准AC亮度值
     const char Standard_AC_Luminance_NRCodes[] = { 0, 2, 1, 3, 3, 2, 4, 3, 5, 5, 4, 4, 0, 0, 1, 0x7d };
     const unsigned char Standard_AC_Luminance_Values[] =
     {
@@ -83,7 +83,7 @@ namespace {
         0xf9, 0xfa
     };
 
-    //-------------------------------------------------------------------------------
+    //标准色差AC值
     const char Standard_AC_Chrominance_NRCodes[] = { 0, 2, 1, 2, 4, 4, 3, 4, 7, 5, 4, 4, 0, 1, 2, 0x77 };
     const unsigned char Standard_AC_Chrominance_Values[] =
     {
@@ -112,33 +112,7 @@ namespace {
 
 }
 
-//-------------------------------------------------------------------------------
-JpegEncoder::JpegEncoder()
-    : m_width(0)
-    , m_height(0)
-    , m_rgbBuffer(0)
-{
-    //初始化静态表格
-    _initHuffmanTables();
-}
-
-//-------------------------------------------------------------------------------
-JpegEncoder::~JpegEncoder()
-{
-    clean();
-}
-
-//-------------------------------------------------------------------------------
-void JpegEncoder::clean(void)
-{
-    if (m_rgbBuffer) delete[] m_rgbBuffer;
-    m_rgbBuffer = 0;
-
-    m_width = 0;
-    m_height = 0;
-}
-
-//-------------------------------------------------------------------------------
+//读取bmp文件
 bool JpegEncoder::readFromBMP(const char* fileName)
 {
     //清理旧数据
@@ -146,7 +120,8 @@ bool JpegEncoder::readFromBMP(const char* fileName)
 
     //BMP 文件格式
 #pragma pack(push, 2)
-    typedef struct {
+    typedef struct
+    {
         unsigned short	bfType;
         unsigned int	bfSize;
         unsigned short	bfReserved1;
@@ -154,7 +129,8 @@ bool JpegEncoder::readFromBMP(const char* fileName)
         unsigned int	bfOffBits;
     } BITMAPFILEHEADER;
 
-    typedef struct {
+    typedef struct
+    {
         unsigned int	biSize;
         int				biWidth;
         int				biHeight;
@@ -171,7 +147,8 @@ bool JpegEncoder::readFromBMP(const char* fileName)
 
     //打开文件
     FILE* fp = fopen(fileName, "rb");
-    if (fp == 0) return false;
+    if (fp == 0)
+        return false;
 
     bool successed = false;
     do
@@ -179,19 +156,25 @@ bool JpegEncoder::readFromBMP(const char* fileName)
         BITMAPFILEHEADER fileHeader;
         BITMAPINFOHEADER infoHeader;
 
-        if (1 != fread(&fileHeader, sizeof(fileHeader), 1, fp)) break;
-        if (fileHeader.bfType != 0x4D42) break;
+        if (1 != fread(&fileHeader, sizeof(fileHeader), 1, fp))
+            break;
+        if (fileHeader.bfType != 0x4D42)
+            break;
 
-        if (1 != fread(&infoHeader, sizeof(infoHeader), 1, fp)) break;
-        if (infoHeader.biBitCount != 24 || infoHeader.biCompression != 0) break;
+        if (1 != fread(&infoHeader, sizeof(infoHeader), 1, fp))
+            break;
+        if (infoHeader.biBitCount != 24 || infoHeader.biCompression != 0)
+            break;
         int width = infoHeader.biWidth;
         int height = infoHeader.biHeight < 0 ? (-infoHeader.biHeight) : infoHeader.biHeight;
-        if ((width & 7) != 0 || (height & 7) != 0) break;	//必须是8的倍数
+        if ((width & 7) != 0 || (height & 7) != 0)
+            break;	//必须是8的倍数
 
         int bmpSize = width * height * 3;
 
         unsigned char* buffer = new unsigned char[bmpSize];
-        if (buffer == 0) break;
+        if (buffer == 0)
+            break;
 
         fseek(fp, fileHeader.bfOffBits, SEEK_SET);
 
@@ -221,26 +204,29 @@ bool JpegEncoder::readFromBMP(const char* fileName)
         successed = true;
     } while (false);
 
-    fclose(fp); fp = 0;
+    fclose(fp);
+    fp = 0;
 
     return successed;
 }
 
-//-------------------------------------------------------------------------------
+//编码为jpg文件格式
 bool JpegEncoder::encodeToJPG(const char* fileName, int quality_scale)
 {
     //尚未读取？
-    if (m_rgbBuffer == 0 || m_width == 0 || m_height == 0) return false;
+    if (m_rgbBuffer == 0 || m_width == 0 || m_height == 0)
+        return false;
 
     //输出文件
     FILE* fp = fopen(fileName, "wb");
-    if (fp == 0) return false;
+    if (fp == 0)
+        return false;
 
     //初始化量化表
-    _initQualityTables(quality_scale);
+    InitQualityTables(quality_scale);
 
     //文件头
-    _write_jpeg_header(fp);
+    Write_jpeg_header(fp);
 
     short prev_DC_Y = 0, prev_DC_Cb = 0, prev_DC_Cr = 0;
     int newByte = 0, newBytePos = 7;
@@ -253,215 +239,167 @@ bool JpegEncoder::encodeToJPG(const char* fileName, int quality_scale)
             short yQuant[64], cbQuant[64], crQuant[64];
 
             //转换颜色空间
-            _convertColorSpace(xPos, yPos, yData, cbData, crData);
+            ConvertColorSpace(xPos, yPos, yData, cbData, crData);
 
             BitString outputBitString[128];
             int bitStringCounts;
 
             //Y通道压缩
-            _foword_FDC(yData, yQuant);
-            _doHuffmanEncoding(yQuant, prev_DC_Y, m_Y_DC_Huffman_Table, m_Y_AC_Huffman_Table, outputBitString, bitStringCounts);
-            _write_bitstring_(outputBitString, bitStringCounts, newByte, newBytePos, fp);
+            Foword_FDC(yData, yQuant);
+            DoHuffmanEncoding(yQuant, prev_DC_Y, m_Y_DC_Huffman_Table, m_Y_AC_Huffman_Table, outputBitString, bitStringCounts);
+            Write_bitstring_(outputBitString, bitStringCounts, newByte, newBytePos, fp);
 
             //Cb通道压缩
-            _foword_FDC(cbData, cbQuant);
-            _doHuffmanEncoding(cbQuant, prev_DC_Cb, m_CbCr_DC_Huffman_Table, m_CbCr_AC_Huffman_Table, outputBitString, bitStringCounts);
-            _write_bitstring_(outputBitString, bitStringCounts, newByte, newBytePos, fp);
+            Foword_FDC(cbData, cbQuant);
+            DoHuffmanEncoding(cbQuant, prev_DC_Cb, m_CbCr_DC_Huffman_Table, m_CbCr_AC_Huffman_Table, outputBitString, bitStringCounts);
+            Write_bitstring_(outputBitString, bitStringCounts, newByte, newBytePos, fp);
 
             //Cr通道压缩
-            _foword_FDC(crData, crQuant);
-            _doHuffmanEncoding(crQuant, prev_DC_Cr, m_CbCr_DC_Huffman_Table, m_CbCr_AC_Huffman_Table, outputBitString, bitStringCounts);
-            _write_bitstring_(outputBitString, bitStringCounts, newByte, newBytePos, fp);
+            Foword_FDC(crData, crQuant);
+            DoHuffmanEncoding(crQuant, prev_DC_Cr, m_CbCr_DC_Huffman_Table, m_CbCr_AC_Huffman_Table, outputBitString, bitStringCounts);
+            Write_bitstring_(outputBitString, bitStringCounts, newByte, newBytePos, fp);
         }
     }
 
-    _write_word_(0xFFD9, fp); //Write End of Image Marker
+    Write_word_(0xFFD9, fp); //Write End of Image Marker
 
     fclose(fp);
 
     return true;
 }
 
-//-------------------------------------------------------------------------------
-void JpegEncoder::_initHuffmanTables(void)
+//初始化量化表
+void JpegEncoder::InitQualityTables(int quality_scale)
 {
-    memset(&m_Y_DC_Huffman_Table, 0, sizeof(m_Y_DC_Huffman_Table));
-    _computeHuffmanTable(Standard_DC_Luminance_NRCodes, Standard_DC_Luminance_Values, m_Y_DC_Huffman_Table);
-
-    memset(&m_Y_AC_Huffman_Table, 0, sizeof(m_Y_AC_Huffman_Table));
-    _computeHuffmanTable(Standard_AC_Luminance_NRCodes, Standard_AC_Luminance_Values, m_Y_AC_Huffman_Table);
-
-    memset(&m_CbCr_DC_Huffman_Table, 0, sizeof(m_CbCr_DC_Huffman_Table));
-    _computeHuffmanTable(Standard_DC_Chrominance_NRCodes, Standard_DC_Chrominance_Values, m_CbCr_DC_Huffman_Table);
-
-    memset(&m_CbCr_AC_Huffman_Table, 0, sizeof(m_CbCr_AC_Huffman_Table));
-    _computeHuffmanTable(Standard_AC_Chrominance_NRCodes, Standard_AC_Chrominance_Values, m_CbCr_AC_Huffman_Table);
-}
-//-------------------------------------------------------------------------------
-JpegEncoder::BitString JpegEncoder::_getBitCode(int value)
-{
-    BitString ret;
-    int v = (value > 0) ? value : -value;
-
-    //bit 的长度
-    int length = 0;
-    for (length = 0; v; v >>= 1) length++;
-
-    ret.value = value > 0 ? value : ((1 << length) + value - 1);
-    ret.length = length;
-
-    return ret;
-};
-
-//-------------------------------------------------------------------------------
-void JpegEncoder::_initQualityTables(int quality_scale)
-{
-    if (quality_scale <= 0) quality_scale = 1;
-    if (quality_scale >= 100) quality_scale = 99;
+    if (quality_scale <= 0)
+        quality_scale = 1;
+    if (quality_scale >= 100)
+        quality_scale = 99;
 
     for (int i = 0; i < 64; i++)
     {
         int temp = ((int)(Luminance_Quantization_Table[i] * quality_scale + 50) / 100);
-        if (temp <= 0) temp = 1;
-        if (temp > 0xFF) temp = 0xFF;
+        if (temp <= 0)
+            temp = 1;
+        if (temp > 0xFF)
+            temp = 0xFF;
         m_YTable[ZigZag[i]] = (unsigned char)temp;
 
         temp = ((int)(Chrominance_Quantization_Table[i] * quality_scale + 50) / 100);
-        if (temp <= 0) 	temp = 1;
-        if (temp > 0xFF) temp = 0xFF;
+        if (temp <= 0)
+            temp = 1;
+        if (temp > 0xFF)
+            temp = 0xFF;
         m_CbCrTable[ZigZag[i]] = (unsigned char)temp;
     }
 }
 
-//-------------------------------------------------------------------------------
-void JpegEncoder::_computeHuffmanTable(const char* nr_codes, const unsigned char* std_table, BitString* huffman_table)
+//写jpg头文件
+void JpegEncoder::Write_jpeg_header(FILE* fp)
 {
-    unsigned char pos_in_table = 0;
-    unsigned short code_value = 0;
+    //SOI
+    Write_word_(0xFFD8, fp);		// marker = 0xFFD8
 
-    for (int k = 1; k <= 16; k++)
-    {
-        for (int j = 1; j <= nr_codes[k - 1]; j++)
-        {
-            huffman_table[std_table[pos_in_table]].value = code_value;
-            huffman_table[std_table[pos_in_table]].length = k;
-            pos_in_table++;
-            code_value++;
-        }
-        code_value <<= 1;
-    }
+    //APPO
+    Write_word_(0xFFE0, fp);		// marker = 0xFFE0
+    Write_word_(16, fp);			// length = 16 for usual JPEG, no thumbnail
+    Write_("JFIF", 5, fp);			// 'JFIF\0'
+    Write_byte_(1, fp);			// version_hi
+    Write_byte_(1, fp);			// version_low
+    Write_byte_(0, fp);			// xyunits = 0 no units, normal density
+    Write_word_(1, fp);			// xdensity
+    Write_word_(1, fp);			// ydensity
+    Write_byte_(0, fp);			// thumbWidth
+    Write_byte_(0, fp);			// thumbHeight
+
+    //DQT
+    Write_word_(0xFFDB, fp);		//marker = 0xFFDB
+    Write_word_(132, fp);			//size=132
+    Write_byte_(0, fp);			//QTYinfo== 0:  bit 0..3: number of QT = 0 (table for Y)
+                                    //				bit 4..7: precision of QT
+                                    //				bit 8	: 0
+    Write_(m_YTable, 64, fp);		//YTable
+    Write_byte_(1, fp);			//QTCbinfo = 1 (quantization table for Cb,Cr)
+    Write_(m_CbCrTable, 64, fp);	//CbCrTable
+
+    //SOFO
+    Write_word_(0xFFC0, fp);			//marker = 0xFFC0
+    Write_word_(17, fp);				//length = 17 for a truecolor YCbCr JPG
+    Write_byte_(8, fp);				//precision = 8: 8 bits/sample
+    Write_word_(m_height & 0xFFFF, fp);	//height
+    Write_word_(m_width & 0xFFFF, fp);	//width
+    Write_byte_(3, fp);				//nrofcomponents = 3: We encode a truecolor JPG
+
+    Write_byte_(1, fp);				//IdY = 1
+    Write_byte_(0x11, fp);				//HVY sampling factors for Y (bit 0-3 vert., 4-7 hor.)(SubSamp 1x1)
+    Write_byte_(0, fp);				//QTY  Quantization Table number for Y = 0
+
+    Write_byte_(2, fp);				//IdCb = 2
+    Write_byte_(0x11, fp);				//HVCb = 0x11(SubSamp 1x1)
+    Write_byte_(1, fp);				//QTCb = 1
+
+    Write_byte_(3, fp);				//IdCr = 3
+    Write_byte_(0x11, fp);				//HVCr = 0x11 (SubSamp 1x1)
+    Write_byte_(1, fp);				//QTCr Normally equal to QTCb = 1
+
+    //DHT
+    Write_word_(0xFFC4, fp);		//marker = 0xFFC4
+    Write_word_(0x01A2, fp);		//length = 0x01A2
+    Write_byte_(0, fp);			//HTYDCinfo bit 0..3	: number of HT (0..3), for Y =0
+                                    //			bit 4		: type of HT, 0 = DC table,1 = AC table
+                                    //			bit 5..7	: not used, must be 0
+    Write_(Standard_DC_Luminance_NRCodes, sizeof(Standard_DC_Luminance_NRCodes), fp);	//DC_L_NRC
+    Write_(Standard_DC_Luminance_Values, sizeof(Standard_DC_Luminance_Values), fp);		//DC_L_VALUE
+    Write_byte_(0x10, fp);			//HTYACinfo
+    Write_(Standard_AC_Luminance_NRCodes, sizeof(Standard_AC_Luminance_NRCodes), fp);
+    Write_(Standard_AC_Luminance_Values, sizeof(Standard_AC_Luminance_Values), fp); //we'll use the standard Huffman tables
+    Write_byte_(0x01, fp);			//HTCbDCinfo
+    Write_(Standard_DC_Chrominance_NRCodes, sizeof(Standard_DC_Chrominance_NRCodes), fp);
+    Write_(Standard_DC_Chrominance_Values, sizeof(Standard_DC_Chrominance_Values), fp);
+    Write_byte_(0x11, fp);			//HTCbACinfo
+    Write_(Standard_AC_Chrominance_NRCodes, sizeof(Standard_AC_Chrominance_NRCodes), fp);
+    Write_(Standard_AC_Chrominance_Values, sizeof(Standard_AC_Chrominance_Values), fp);
+
+    //SOS
+    Write_word_(0xFFDA, fp);		//marker = 0xFFC4
+    Write_word_(12, fp);			//length = 12
+    Write_byte_(3, fp);			//nrofcomponents, Should be 3: truecolor JPG
+
+    Write_byte_(1, fp);			//Idy=1
+    Write_byte_(0, fp);			//HTY	bits 0..3: AC table (0..3)
+                                    //		bits 4..7: DC table (0..3)
+    Write_byte_(2, fp);			//IdCb
+    Write_byte_(0x11, fp);			//HTCb
+
+    Write_byte_(3, fp);			//IdCr
+    Write_byte_(0x11, fp);			//HTCr
+
+    Write_byte_(0, fp);			//Ss not interesting, they should be 0,63,0
+    Write_byte_(0x3F, fp);			//Se
+    Write_byte_(0, fp);			//Bf
 }
 
-//-------------------------------------------------------------------------------
-void JpegEncoder::_write_byte_(unsigned char value, FILE* fp)
+//写字节
+void JpegEncoder::Write_byte_(unsigned char value, FILE* fp)
 {
-    _write_(&value, 1, fp);
+    Write_(&value, 1, fp);
 }
 
-//-------------------------------------------------------------------------------
-void JpegEncoder::_write_word_(unsigned short value, FILE* fp)
+//写字
+void JpegEncoder::Write_word_(unsigned short value, FILE* fp)
 {
     unsigned short _value = ((value >> 8) & 0xFF) | ((value & 0xFF) << 8);
-    _write_(&_value, 2, fp);
+    Write_(&_value, 2, fp);
 }
 
-//-------------------------------------------------------------------------------
-void JpegEncoder::_write_(const void* p, int byteSize, FILE* fp)
+//写文件
+void JpegEncoder::Write_(const void* p, int byteSize, FILE* fp)
 {
     fwrite(p, 1, byteSize, fp);
 }
 
-//-------------------------------------------------------------------------------
-void JpegEncoder::_doHuffmanEncoding(const short* DU, short& prevDC, const BitString* HTDC, const BitString* HTAC,
-    BitString* outputBitString, int& bitStringCounts)
-{
-    BitString EOB = HTAC[0x00];
-    BitString SIXTEEN_ZEROS = HTAC[0xF0];
-
-    int index = 0;
-
-    // encode DC
-    int dcDiff = (int)(DU[0] - prevDC);
-    prevDC = DU[0];
-
-    if (dcDiff == 0)
-        outputBitString[index++] = HTDC[0];
-    else
-    {
-        BitString bs = _getBitCode(dcDiff);
-
-        outputBitString[index++] = HTDC[bs.length];
-        outputBitString[index++] = bs;
-    }
-
-    // encode ACs
-    int endPos = 63; //end0pos = first element in reverse order != 0
-    while ((endPos > 0) && (DU[endPos] == 0)) endPos--;
-
-    for (int i = 1; i <= endPos; )
-    {
-        int startPos = i;
-        while ((DU[i] == 0) && (i <= endPos)) i++;
-
-        int zeroCounts = i - startPos;
-        if (zeroCounts >= 16)
-        {
-            for (int j = 1; j <= zeroCounts / 16; j++)
-                outputBitString[index++] = SIXTEEN_ZEROS;
-            zeroCounts = zeroCounts % 16;
-        }
-
-        BitString bs = _getBitCode(DU[i]);
-
-        outputBitString[index++] = HTAC[(zeroCounts << 4) | bs.length];
-        outputBitString[index++] = bs;
-        i++;
-    }
-
-    if (endPos != 63)
-        outputBitString[index++] = EOB;
-
-    bitStringCounts = index;
-}
-
-//-------------------------------------------------------------------------------
-void JpegEncoder::_write_bitstring_(const BitString* bs, int counts, int& newByte, int& newBytePos, FILE* fp)
-{
-    unsigned short mask[] = { 1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768 };
-
-    for (int i = 0; i < counts; i++)
-    {
-        int value = bs[i].value;
-        int posval = bs[i].length - 1;
-
-        while (posval >= 0)
-        {
-            if ((value & mask[posval]) != 0)
-            {
-                newByte = newByte | mask[newBytePos];
-            }
-            posval--;
-            newBytePos--;
-            if (newBytePos < 0)
-            {
-                // Write to stream
-                _write_byte_((unsigned char)(newByte), fp);
-                if (newByte == 0xFF)
-                {
-                    // Handle special case
-                    _write_byte_((unsigned char)(0x00), fp);
-                }
-
-                // Reinitialize
-                newBytePos = 7;
-                newByte = 0;
-            }
-        }
-    }
-}
-
-//-------------------------------------------------------------------------------
-void JpegEncoder::_convertColorSpace(int xPos, int yPos, char* yData, char* cbData, char* crData)
+//颜色空间转换
+void JpegEncoder::ConvertColorSpace(int xPos, int yPos, char* yData, char* cbData, char* crData)
 {
     for (int y = 0; y < 8; y++)
     {
@@ -479,8 +417,8 @@ void JpegEncoder::_convertColorSpace(int xPos, int yPos, char* yData, char* cbDa
     }
 }
 
-//-------------------------------------------------------------------------------
-void JpegEncoder::_foword_FDC(const char* channel_data, short* fdc_data)
+//正向DCT变换
+void JpegEncoder::Foword_FDC(const char* channel_data, short* fdc_data)
 {
     const float PI = 3.1415926f;
     for (int v = 0; v < 8; v++)
@@ -510,87 +448,172 @@ void JpegEncoder::_foword_FDC(const char* channel_data, short* fdc_data)
     }
 }
 
-//-------------------------------------------------------------------------------
-void JpegEncoder::_write_jpeg_header(FILE* fp)
+//进行Huffman编码
+void JpegEncoder::DoHuffmanEncoding(const short* DU, short& prevDC, const BitString* HTDC, const BitString* HTAC,
+    BitString* outputBitString, int& bitStringCounts)
 {
-    //SOI
-    _write_word_(0xFFD8, fp);		// marker = 0xFFD8
+    BitString EOB = HTAC[0x00];
+    BitString SIXTEEN_ZEROS = HTAC[0xF0];
 
-    //APPO
-    _write_word_(0xFFE0, fp);		// marker = 0xFFE0
-    _write_word_(16, fp);			// length = 16 for usual JPEG, no thumbnail
-    _write_("JFIF", 5, fp);			// 'JFIF\0'
-    _write_byte_(1, fp);			// version_hi
-    _write_byte_(1, fp);			// version_low
-    _write_byte_(0, fp);			// xyunits = 0 no units, normal density
-    _write_word_(1, fp);			// xdensity
-    _write_word_(1, fp);			// ydensity
-    _write_byte_(0, fp);			// thumbWidth
-    _write_byte_(0, fp);			// thumbHeight
+    int index = 0;
 
-    //DQT
-    _write_word_(0xFFDB, fp);		//marker = 0xFFDB
-    _write_word_(132, fp);			//size=132
-    _write_byte_(0, fp);			//QTYinfo== 0:  bit 0..3: number of QT = 0 (table for Y)
-                                    //				bit 4..7: precision of QT
-                                    //				bit 8	: 0
-    _write_(m_YTable, 64, fp);		//YTable
-    _write_byte_(1, fp);			//QTCbinfo = 1 (quantization table for Cb,Cr)
-    _write_(m_CbCrTable, 64, fp);	//CbCrTable
+    // encode DC
+    int dcDiff = (int)(DU[0] - prevDC);
+    prevDC = DU[0];
 
-    //SOFO
-    _write_word_(0xFFC0, fp);			//marker = 0xFFC0
-    _write_word_(17, fp);				//length = 17 for a truecolor YCbCr JPG
-    _write_byte_(8, fp);				//precision = 8: 8 bits/sample
-    _write_word_(m_height & 0xFFFF, fp);	//height
-    _write_word_(m_width & 0xFFFF, fp);	//width
-    _write_byte_(3, fp);				//nrofcomponents = 3: We encode a truecolor JPG
+    if (dcDiff == 0)
+        outputBitString[index++] = HTDC[0];
+    else
+    {
+        BitString bs = GetBitCode(dcDiff);
 
-    _write_byte_(1, fp);				//IdY = 1
-    _write_byte_(0x11, fp);				//HVY sampling factors for Y (bit 0-3 vert., 4-7 hor.)(SubSamp 1x1)
-    _write_byte_(0, fp);				//QTY  Quantization Table number for Y = 0
+        outputBitString[index++] = HTDC[bs.length];
+        outputBitString[index++] = bs;
+    }
 
-    _write_byte_(2, fp);				//IdCb = 2
-    _write_byte_(0x11, fp);				//HVCb = 0x11(SubSamp 1x1)
-    _write_byte_(1, fp);				//QTCb = 1
+    // encode ACs
+    int endPos = 63; //end0pos = first element in reverse order != 0
+    while ((endPos > 0) && (DU[endPos] == 0))
+        endPos--;
 
-    _write_byte_(3, fp);				//IdCr = 3
-    _write_byte_(0x11, fp);				//HVCr = 0x11 (SubSamp 1x1)
-    _write_byte_(1, fp);				//QTCr Normally equal to QTCb = 1
+    for (int i = 1; i <= endPos; )
+    {
+        int startPos = i;
+        while ((DU[i] == 0) && (i <= endPos))
+            i++;
 
-    //DHT
-    _write_word_(0xFFC4, fp);		//marker = 0xFFC4
-    _write_word_(0x01A2, fp);		//length = 0x01A2
-    _write_byte_(0, fp);			//HTYDCinfo bit 0..3	: number of HT (0..3), for Y =0
-                                    //			bit 4		: type of HT, 0 = DC table,1 = AC table
-                                    //			bit 5..7	: not used, must be 0
-    _write_(Standard_DC_Luminance_NRCodes, sizeof(Standard_DC_Luminance_NRCodes), fp);	//DC_L_NRC
-    _write_(Standard_DC_Luminance_Values, sizeof(Standard_DC_Luminance_Values), fp);		//DC_L_VALUE
-    _write_byte_(0x10, fp);			//HTYACinfo
-    _write_(Standard_AC_Luminance_NRCodes, sizeof(Standard_AC_Luminance_NRCodes), fp);
-    _write_(Standard_AC_Luminance_Values, sizeof(Standard_AC_Luminance_Values), fp); //we'll use the standard Huffman tables
-    _write_byte_(0x01, fp);			//HTCbDCinfo
-    _write_(Standard_DC_Chrominance_NRCodes, sizeof(Standard_DC_Chrominance_NRCodes), fp);
-    _write_(Standard_DC_Chrominance_Values, sizeof(Standard_DC_Chrominance_Values), fp);
-    _write_byte_(0x11, fp);			//HTCbACinfo
-    _write_(Standard_AC_Chrominance_NRCodes, sizeof(Standard_AC_Chrominance_NRCodes), fp);
-    _write_(Standard_AC_Chrominance_Values, sizeof(Standard_AC_Chrominance_Values), fp);
+        int zeroCounts = i - startPos;
+        if (zeroCounts >= 16)
+        {
+            for (int j = 1; j <= zeroCounts / 16; j++)
+                outputBitString[index++] = SIXTEEN_ZEROS;
+            zeroCounts = zeroCounts % 16;
+        }
 
-    //SOS
-    _write_word_(0xFFDA, fp);		//marker = 0xFFC4
-    _write_word_(12, fp);			//length = 12
-    _write_byte_(3, fp);			//nrofcomponents, Should be 3: truecolor JPG
+        BitString bs = GetBitCode(DU[i]);
 
-    _write_byte_(1, fp);			//Idy=1
-    _write_byte_(0, fp);			//HTY	bits 0..3: AC table (0..3)
-                                    //		bits 4..7: DC table (0..3)
-    _write_byte_(2, fp);			//IdCb
-    _write_byte_(0x11, fp);			//HTCb
+        outputBitString[index++] = HTAC[(zeroCounts << 4) | bs.length];
+        outputBitString[index++] = bs;
+        i++;
+    }
 
-    _write_byte_(3, fp);			//IdCr
-    _write_byte_(0x11, fp);			//HTCr
+    if (endPos != 63)
+        outputBitString[index++] = EOB;
 
-    _write_byte_(0, fp);			//Ss not interesting, they should be 0,63,0
-    _write_byte_(0x3F, fp);			//Se
-    _write_byte_(0, fp);			//Bf
+    bitStringCounts = index;
+}
+
+//得到bit值
+JpegEncoder::BitString JpegEncoder::GetBitCode(int value)
+{
+    BitString ret;
+    int v = (value > 0) ? value : -value;
+
+    //bit 的长度
+    int length = 0;
+    for (length = 0; v; v >>= 1)
+        length++;
+
+    ret.value = value > 0 ? value : ((1 << length) + value - 1);
+    ret.length = length;
+
+    return ret;
+};
+
+//写bit字符
+void JpegEncoder::Write_bitstring_(const BitString* bs, int counts, int& newByte, int& newBytePos, FILE* fp)
+{
+    unsigned short mask[] = { 1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768 };
+
+    for (int i = 0; i < counts; i++)
+    {
+        int value = bs[i].value;
+        int posval = bs[i].length - 1;
+
+        while (posval >= 0)
+        {
+            if ((value & mask[posval]) != 0)
+            {
+                newByte = newByte | mask[newBytePos];
+            }
+            posval--;
+            newBytePos--;
+            if (newBytePos < 0)
+            {
+                // Write to stream
+                Write_byte_((unsigned char)(newByte), fp);
+                if (newByte == 0xFF)
+                {
+                    // Handle special case
+                    Write_byte_((unsigned char)(0x00), fp);
+                }
+
+                // Reinitialize
+                newBytePos = 7;
+                newByte = 0;
+            }
+        }
+    }
+}
+
+//Jpeg编码器构造函数
+JpegEncoder::JpegEncoder()
+    : m_width(0)
+    , m_height(0)
+    , m_rgbBuffer(0)
+{
+    //初始化静态表格
+    InitHuffmanTables();
+}
+
+//初始化Huffman表
+void JpegEncoder::InitHuffmanTables(void)
+{
+    memset(&m_Y_DC_Huffman_Table, 0, sizeof(m_Y_DC_Huffman_Table));
+    ComputeHuffmanTable(Standard_DC_Luminance_NRCodes, Standard_DC_Luminance_Values, m_Y_DC_Huffman_Table);
+
+    memset(&m_Y_AC_Huffman_Table, 0, sizeof(m_Y_AC_Huffman_Table));
+    ComputeHuffmanTable(Standard_AC_Luminance_NRCodes, Standard_AC_Luminance_Values, m_Y_AC_Huffman_Table);
+
+    memset(&m_CbCr_DC_Huffman_Table, 0, sizeof(m_CbCr_DC_Huffman_Table));
+    ComputeHuffmanTable(Standard_DC_Chrominance_NRCodes, Standard_DC_Chrominance_Values, m_CbCr_DC_Huffman_Table);
+
+    memset(&m_CbCr_AC_Huffman_Table, 0, sizeof(m_CbCr_AC_Huffman_Table));
+    ComputeHuffmanTable(Standard_AC_Chrominance_NRCodes, Standard_AC_Chrominance_Values, m_CbCr_AC_Huffman_Table);
+}
+
+//计算Huffman表
+void JpegEncoder::ComputeHuffmanTable(const char* nr_codes, const unsigned char* std_table, BitString* huffman_table)
+{
+    unsigned char pos_in_table = 0;
+    unsigned short code_value = 0;
+
+    for (int k = 1; k <= 16; k++)
+    {
+        for (int j = 1; j <= nr_codes[k - 1]; j++)
+        {
+            huffman_table[std_table[pos_in_table]].value = code_value;
+            huffman_table[std_table[pos_in_table]].length = k;
+            pos_in_table++;
+            code_value++;
+        }
+        code_value <<= 1;
+    }
+}
+
+//Jpeg编码器析构函数
+JpegEncoder::~JpegEncoder()
+{
+    clean();
+}
+
+//清除内存空间
+void JpegEncoder::clean(void)
+{
+    if (m_rgbBuffer)
+        delete[] m_rgbBuffer;
+    m_rgbBuffer = 0;
+
+    m_width = 0;
+    m_height = 0;
 }
