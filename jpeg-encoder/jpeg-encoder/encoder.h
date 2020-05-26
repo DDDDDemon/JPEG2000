@@ -6,11 +6,8 @@
 class JpegEncoder
 {
 public:
-    // 清理数据
-    void clean(void);
-
     // 从BMP文件中读取文件，仅支持24bit，长度是8的倍数的文件
-    bool readFromBMP(const char* fileName);
+    bool readBMPFile(const char* fileName);
 
     // 压缩到jpg文件中，quality_scale表示质量，取值范围(0,100), 数字越大压缩比例越高
     bool encodeToJPG(const char* fileName, int quality_scale);
@@ -36,11 +33,13 @@ private:
     BitString m_CbCr_AC_Huffman_Table[256];//色差值AC系数Huffman表
 
 private:
-    void InitHuffmanTables(void);//初始化Huffman表
+    void InitDCLuminanceTable();
+    void InitACLuminanceTable();
+    void InitDCChrominanceTable();
+    void InitACChrominanceTable();
     void InitQualityTables(int quality);//初始化量化表
-    void ComputeHuffmanTable(const char* nr_codes, const unsigned char* std_table, BitString* huffman_table);//计算Huffman表
-    BitString GetBitCode(int value);
 
+    BitString GetBitCode(int value);
     void ConvertColorSpace(int xPos, int yPos, char* yData, char* cbData, char* crData);//转换颜色空间
     void Foword_FDC(const char* channel_data, short* fdc_data);
     void DoHuffmanEncoding(const short* DU, short& prevDC, const BitString* HTDC, const BitString* HTAC,
@@ -48,10 +47,10 @@ private:
 
 private:
     void Write_jpeg_header(FILE* fp);
-    void Write_byte_(unsigned char value, FILE* fp);
-    void Write_word_(unsigned short value, FILE* fp);
-    void Write_bitstring_(const BitString* bs, int counts, int& newByte, int& newBytePos, FILE* fp);
-    void Write_(const void* p, int byteSize, FILE* fp);
+    void Write_byte(unsigned char value, FILE* fp);
+    void Write_word(unsigned short value, FILE* fp);
+    void Write_bitstring(const BitString* bs, int counts, int& newByte, int& newBytePos, FILE* fp);
+    void Write(const void* p, int byteSize, FILE* fp);
 
 public:
     JpegEncoder();

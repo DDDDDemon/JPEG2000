@@ -598,7 +598,7 @@ void Widget::on_pushButton_OpenFile_clicked()
     QString path = QFileDialog::getOpenFileName(this, tr("选择图片"), ".", tr("Image Files(*.bmp)"));
     string str=path.toStdString();
     const char* s=str.c_str();
-    if(!e.readFromBMP(s))
+    if(!e.readBMPFile(s))
     {
         QMessageBox::information(NULL, QString::fromLocal8Bit("警告"), QString::fromLocal8Bit("打开图片失败"), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
     }
