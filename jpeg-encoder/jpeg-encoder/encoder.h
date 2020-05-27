@@ -6,7 +6,6 @@
 class JpegEncoder
 {
 public:
-    // 从BMP文件中读取文件，仅支持24bit，长度是8的倍数的文件
     bool readBMPFile(const char* fileName);
 
     // 压缩到jpg文件中，quality_scale表示质量，取值范围(0,100), 数字越大压缩比例越高
@@ -41,7 +40,7 @@ private:
 
     BitString GetBitCode(int value);
     void ConvertColorSpace(int xPos, int yPos, char* yData, char* cbData, char* crData);//转换颜色空间
-    void Foword_FDC(const char* channel_data, short* fdc_data);
+    void Foword_FDC(const char* channel_data, short* fdc_data);//正向DCT变换及数据量化
     void DoHuffmanEncoding(const short* DU, short& prevDC, const BitString* HTDC, const BitString* HTAC,
         BitString* outputBitString, int& bitStringCounts);//Huffman编码
 

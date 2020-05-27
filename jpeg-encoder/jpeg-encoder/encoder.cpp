@@ -270,7 +270,7 @@ bool JpegEncoder::encodeToJPG(const char* fileName, int quality_scale)
         }
     }
 
-    Write_word(0xFFD9, fp); //Write End of Image Marker
+    Write_word(0xFFD9, fp); //写jpg文件
 
     fclose(fp);
 

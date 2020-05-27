@@ -73,7 +73,7 @@ void init_cos_cache() {
 class MCU {
 public:
     BLOCK mcu[4][2][2];
-    // 闄ら尟鐢?
+    //除错用
     void show() {
         printf("*************** mcu show ***********************\n");
         for (int id = 1; id <= 3; id++) {
@@ -136,18 +136,6 @@ public:
             for (int h = 0; h < subVector[id].height; h++) {
                 for (int w = 0; w < subVector[id].width; w++) {
                     double tmp[8][8] = { 0 };
-                    //					 鐓у畾缇╁睍闁嬶紝鏁堣兘浣庝笅
-                    //                     for (int i = 0; i < 8; i++) {
-                    //                         for (int j = 0; j < 8; j++) {
-                    //                             for (int x = 0; x < 8; x++) {
-                    //                                 for (int y = 0; y < 8; y++) {
-                    //                                     tmp[i][j] += (cc(x, y) * mcu[id][h][w][x][y] * cos((2*i+1)*M_PI/16.0*x) * cos((2*j+1)*M_PI/16.0*y));
-                    //                                 }
-                    //                             }
-                    //                             tmp[i][j] /= 4.0;
-                    //                         }
-                    //                     }
-                                        // 瑷堢畻鍏╂涓€缍璱dct鍘昏▓绠椾簩缍璱dct
                     double s[8][8] = {};
                     for (int j = 0; j < 8; j++) {
                         for (int x = 0; x < 8; x++) {
@@ -235,7 +223,7 @@ private:
     }
 };
 
-// 璁€鍙?Section 鐢ㄤ箣杓斿姪鍑藉紡
+//读取Section使用辅助函数
 
 void showSectionName(const char *s) {
     printf("************************ %s **************************\n", s);
@@ -255,11 +243,11 @@ unsigned int readSectionLength(FILE *f) {
 unsigned int EnterNewSection(FILE *f, const char *s) {
     showSectionName(s);
     unsigned int len = readSectionLength(f);
-    printf("鏈崁娈甸暦搴︾偤 %d\n", len);
+    printf("本区段长度为%d\n", len);
     return len;
 }
 
-// 璁€鍙栧悇 Section 涔嬪嚱寮?
+//读取各Section的函数
 
 void readCOM(FILE *f) {
     unsigned int len = EnterNewSection(f, "COM");
@@ -275,15 +263,15 @@ void readAPP(FILE *f) {
     unsigned int len = EnterNewSection(f, "APP0");
     char m[5];
     fread(m, 1, 5, f);
-    printf("浣跨敤 %s\n", m);
+    printf("使用%s\n", m);
     unsigned char v[2];
     fread(v, 1, 2, f);
-    printf("鐗堟湰 %d.%d\n", v[0], v[1]);
+    printf("版本%d.%d\n", v[0], v[1]);
     fseek(f, 1, SEEK_CUR);
     fread(v, 1, 2, f);
-    printf("x鏂瑰悜鍍忕礌瀵嗗害锛?d\n", v[0] * 16 + v[1]);
+    printf("x方向像素密度?d\n", v[0] * 16 + v[1]);
     fread(v, 1, 2, f);
-    printf("y鏂瑰悜鍍忕礌瀵嗗害锛?d\n", v[0] * 16 + v[1]);
+    printf("y方向像素密度?d\n", v[0] * 16 + v[1]);
     fseek(f, len - 14, SEEK_CUR);
 }
 
@@ -295,10 +283,10 @@ void readDQT(FILE *f) {
         fread(&c, 1, 1, f);
         len--;
         unsigned precision = c >> 4 == 0 ? 8 : 16;
-        printf("绮惧害锛?d\n", precision);
+        printf("精度?d\n", precision);
         precision /= 8;
         unsigned char id = c & 0x0F;
-        printf("閲忓寲琛↖D: %d\n", id);
+        printf("量化表%d\n", id);
         for (int i = 0; i < 64; i++) {
             unsigned char t = 0;
             for (int p = 0; p < precision; p++) {
@@ -322,21 +310,21 @@ void readDQT(FILE *f) {
 
 void readSOF(FILE *f) {
     unsigned int len = EnterNewSection(f, "SOF");
-    fseek(f, 1, SEEK_CUR); // 绮惧害
+    fseek(f, 1, SEEK_CUR); //精度
     unsigned char v[3];
     fread(v, 1, 2, f);
-    // TODO: 楂樺害璺熷搴︿笉纰哄畾
+    // TODO:高度和宽度不确定
     image.height = v[0] * 256 + v[1];
     fread(v, 1, 2, f);
     image.width = v[0] * 256 + v[1];
-    printf("楂?瀵? %d*%d\n", image.height, image.width);
-    fseek(f, 1, SEEK_CUR); // 椤忚壊鍒嗛噺鏁革紝鍥哄畾鐐?
+    printf("高*宽%d*%d\n", image.height, image.width);
+    fseek(f, 1, SEEK_CUR); //颜色分量数固定为3
     for (int i = 0; i < 3; i++) {
         fread(v, 1, 3, f);
-        printf("椤忚壊鍒嗛噺ID锛?d\n", v[0]);
-        printf("姘村钩鎺℃ǎ鍥犲瓙锛?d\n", v[1] >> 4);
-        printf("鍨傜洿鎺℃ǎ鍥犲瓙锛?d\n", v[1] & 0x0F);
-        printf("閲忓寲琛↖D锛?d\n", v[2]);
+        printf("颜色分量ID?d\n", v[0]);
+        printf("水平采样因子?d\n", v[1] >> 4);
+        printf("垂直采样因子?d\n", v[1] & 0x0F);
+        printf("量化表ID?d\n", v[2]);
         subVector[v[0]].id = v[0];
         subVector[v[0]].width = v[1] >> 4;
         subVector[v[0]].height = v[1] & 0x0F;
@@ -396,19 +384,19 @@ void readDHT(FILE *f) {
 void readSOS(FILE *f) {
     unsigned int len = EnterNewSection(f, "SOS");
 
-    fseek(f, 1, SEEK_CUR);   // 椤忚壊鍒嗛噺鏁革紝鍥哄畾鐐?
+    fseek(f, 1, SEEK_CUR);   //颜色分量数固定为3
     for (int i = 0; i < 3; i++) {
         unsigned char v[1];
         fread(v, 1, 1, f);
-        printf("椤忚壊鍒嗛噺id锛?d\n", v[0]);
+        printf("颜色分量ID?d\n", v[0]);
         fread(v, 1, 1, f);
-        printf("DC闇嶅か鏇糹d锛?d\n", v[0] >> 4);
-        printf("AC闇嶅か鏇糹d锛?d\n", v[0] & 0x0F);
+        printf("DCHuffmanID?d\n", v[0] >> 4);
+        printf("ACHuffmanID?d\n", v[0] & 0x0F);
     }
     fseek(f, 3, SEEK_CUR);
 }
 
-// 蹇呴爤閫ｇ簩鍛煎彨getBit锛屼腑闁撹fread鏂锋帀灏辨渻鍑哄晱椤?
+//必须连续调用getbit，中间被fread断掉对出问题
 bool getBit(FILE *f) {
     static unsigned char buf;
     static unsigned char count = 0;
@@ -418,7 +406,7 @@ bool getBit(FILE *f) {
             unsigned char check;
             fread(&check, 1, 1, f);
             if (check != 0x00) {
-                fprintf(stderr, "data 娈垫湁涓嶆槸 0xFF00 鐨勬暩鎿?");
+                fprintf(stderr, "data有不是0xFFFF的数据?");
             }
         }
     }
@@ -456,7 +444,7 @@ int readDC(FILE *f, unsigned char number) {
     return ret;
 }
 
-// 瑷堢畻ZRL
+//计算ZRL
 acCode readAC(FILE *f, unsigned char number) {
     unsigned char x = matchHuff(f, number, AC);
     unsigned char zeros = x >> 4;
@@ -589,7 +577,7 @@ void readStream(FILE *f) {
         fread(&c, 1, 1, f);
     }
     if (fread(&c, 1, 1, f) != 0) {
-        fprintf(stderr, "娌掓湁鍚冨畬灏辩祼鏉焅n");
+        fprintf(stderr, "没有读取完就结束");
     }
 }
 
@@ -616,7 +604,7 @@ void Widget::on_pushButton_OpenFile2_clicked()
     const char* s=str.c_str();
     FILE *f = fopen(s, "rb");
     if (f == NULL) {
-        fprintf(stderr, "妾旀闁嬪暉澶辨晽\n");
+        fprintf(stderr, "图片打开失败\n");
     }
     init_cos_cache();
     readStream(f);
