@@ -254,24 +254,18 @@ void readCOM(FILE *f) {
     unsigned char c;
     for (int i = 0; i < len - 2; i++) {
         fread(&c, 1, 1, f);
-        printf("%c", c);
     }
-    printf("\n");
 }
 
 void readAPP(FILE *f) {
     unsigned int len = EnterNewSection(f, "APP0");
     char m[5];
     fread(m, 1, 5, f);
-    printf("使用%s\n", m);
     unsigned char v[2];
     fread(v, 1, 2, f);
-    printf("版本%d.%d\n", v[0], v[1]);
     fseek(f, 1, SEEK_CUR);
     fread(v, 1, 2, f);
-    printf("x方向像素密度?d\n", v[0] * 16 + v[1]);
     fread(v, 1, 2, f);
-    printf("y方向像素密度?d\n", v[0] * 16 + v[1]);
     fseek(f, len - 14, SEEK_CUR);
 }
 
@@ -283,10 +277,8 @@ void readDQT(FILE *f) {
         fread(&c, 1, 1, f);
         len--;
         unsigned precision = c >> 4 == 0 ? 8 : 16;
-        printf("精度?d\n", precision);
         precision /= 8;
         unsigned char id = c & 0x0F;
-        printf("量化表%d\n", id);
         for (int i = 0; i < 64; i++) {
             unsigned char t = 0;
             for (int p = 0; p < precision; p++) {
@@ -297,13 +289,6 @@ void readDQT(FILE *f) {
             }
             quantTable[id][i] = t;
         }
-        for (int i = 0; i < 64; i++) {
-            if (i % 8 == 0) {
-                printf("\n");
-            }
-            printf("%2d ", quantTable[id][i]);
-        }
-        printf("\n");
         len -= (precision * 64);
     }
 }
@@ -317,14 +302,9 @@ void readSOF(FILE *f) {
     image.height = v[0] * 256 + v[1];
     fread(v, 1, 2, f);
     image.width = v[0] * 256 + v[1];
-    printf("高*宽%d*%d\n", image.height, image.width);
     fseek(f, 1, SEEK_CUR); //颜色分量数固定为3
     for (int i = 0; i < 3; i++) {
         fread(v, 1, 3, f);
-        printf("颜色分量ID?d\n", v[0]);
-        printf("水平采样因子?d\n", v[1] >> 4);
-        printf("垂直采样因子?d\n", v[1] & 0x0F);
-        printf("量化表ID?d\n", v[2]);
         subVector[v[0]].id = v[0];
         subVector[v[0]].width = v[1] >> 4;
         subVector[v[0]].height = v[1] & 0x0F;
@@ -356,24 +336,19 @@ void readDHT(FILE *f) {
         unsigned char v[1];
         fread(v, 1, 1, f);
         unsigned char DCorAC = v[0] >> 4;
-        printf(DCorAC == 0 ? "DC\n" : "AC\n");
         unsigned char id = v[0] & 0x0F;
-        printf("ID: %d\n", id);
 
         unsigned char a[16];
         fread(a, 1, 16, f);
         unsigned int number = 0;
         for (int i = 0; i < 16; i++) {
-            printf("%d ", a[i]);
             number += a[i];
         }
-        printf("\n");
         auto huffCode = createHuffCode(a, number);
         for (int i = 0; i < number; i++) {
             unsigned char v;
             fread(&v, 1, 1, f);
             huffTable[DCorAC][id][huffCode[i]] = v;
-            printf("%d %d: %d\n", huffCode[i].first, huffCode[i].second, v);
         }
         free(huffCode);
 
@@ -388,10 +363,7 @@ void readSOS(FILE *f) {
     for (int i = 0; i < 3; i++) {
         unsigned char v[1];
         fread(v, 1, 1, f);
-        printf("颜色分量ID?d\n", v[0]);
         fread(v, 1, 1, f);
-        printf("DCHuffmanID?d\n", v[0] >> 4);
-        printf("ACHuffmanID?d\n", v[0] & 0x0F);
     }
     fseek(f, 3, SEEK_CUR);
 }
@@ -584,6 +556,14 @@ void readStream(FILE *f) {
 void Widget::on_pushButton_OpenFile_clicked()
 {
     QString path = QFileDialog::getOpenFileName(this, tr("选择图片"), ".", tr("Image Files(*.bmp)"));
+    QImage image;
+    if(path!="")
+    {
+        if(image.load(path))
+        {
+            ui->Image_label->setPixmap(QPixmap::fromImage(image).scaled(ui->Image_label->size()));
+        }
+    }
     string str=path.toStdString();
     const char* s=str.c_str();
     if(!e.readBMPFile(s))
@@ -600,6 +580,14 @@ void Widget::on_pushButton_OpenFile_clicked()
 void Widget::on_pushButton_OpenFile2_clicked()
 {
     QString path = QFileDialog::getOpenFileName(this, tr("选择图片"), ".", tr("Image Files(*.jpg)"));
+    QImage image;
+    if(path!="")
+    {
+        if(image.load(path))
+        {
+            ui->Image_label->setPixmap(QPixmap::fromImage(image).scaled(ui->Image_label->size()));
+        }
+    }
     string str=path.toStdString();
     const char* s=str.c_str();
     FILE *f = fopen(s, "rb");
