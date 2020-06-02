@@ -22,7 +22,7 @@ QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
 struct qt_meta_stringdata_Widget_t {
     QByteArrayData data[4];
-    char stringdata0[72];
+    char stringdata0[71];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -34,11 +34,11 @@ static const qt_meta_stringdata_Widget_t qt_meta_stringdata_Widget = {
 QT_MOC_LITERAL(0, 0, 6), // "Widget"
 QT_MOC_LITERAL(1, 7, 30), // "on_pushButton_OpenFile_clicked"
 QT_MOC_LITERAL(2, 38, 0), // ""
-QT_MOC_LITERAL(3, 39, 32) // "on_pushButton_OpenFile_2_clicked"
+QT_MOC_LITERAL(3, 39, 31) // "on_pushButton_OpenFile2_clicked"
 
     },
     "Widget\0on_pushButton_OpenFile_clicked\0"
-    "\0on_pushButton_OpenFile_2_clicked"
+    "\0on_pushButton_OpenFile2_clicked"
 };
 #undef QT_MOC_LITERAL
 
@@ -57,7 +57,7 @@ static const uint qt_meta_data_Widget[] = {
 
  // slots: name, argc, parameters, tag, flags
        1,    0,   24,    2, 0x0a /* Public */,
-       3,    0,   25,    2, 0x08 /* Private */,
+       3,    0,   25,    2, 0x0a /* Public */,
 
  // slots: parameters
     QMetaType::Void,
@@ -73,7 +73,7 @@ void Widget::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void
         Q_UNUSED(_t)
         switch (_id) {
         case 0: _t->on_pushButton_OpenFile_clicked(); break;
-        case 1: _t->on_pushButton_OpenFile_2_clicked(); break;
+        case 1: _t->on_pushButton_OpenFile2_clicked(); break;
         default: ;
         }
     }
